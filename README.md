@@ -27,11 +27,22 @@ This repository is structured as a `pnpm` monorepo:
 
 ---
 
-## 🤖 AI Agent MCP Integration
+## 🤖 AI Agent MCP Integration & Self-Discovery
 
-Plug the `@airtifact/mcp` into your agentic tools (Claude Desktop, Cursor, Antigravity, Windsurf, etc.) to allow AI agents to deploy local static websites directly to your uploader backend.
+Plug `@airtifact/mcp` into your agentic tools (Claude Code, Cursor, Antigravity, Windsurf, ChatGPT) to allow AI agents to deploy local static websites directly to your uploader backend.
 
-### Quick Start with `npx`
+### 🧭 Agent Self-Configuration & Discovery
+
+Agents can autonomously introspect capabilities and operational guidelines:
+- **Agent Skill Manual**: [`https://airtifact.page/skill.md`](https://airtifact.page/skill.md) — Step-by-step operational instructions for AI coding agents.
+- **MCP Server Discovery**: [`https://airtifact.page/api/mcp`](https://airtifact.page/api/mcp) — Machine-readable manifest of tools, parameters, and client config snippets.
+
+### Quick Start with Claude Code
+```bash
+claude mcp add airtifact -- npx -y @airtifact/mcp
+```
+
+### Quick Start with `mcp_config.json`
 
 Add the MCP server to your environment's `mcp_config.json`:
 

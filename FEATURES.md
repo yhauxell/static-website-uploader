@@ -6,6 +6,10 @@ This document outlines the current capabilities and feature set of **Airtifact**
 
 ## 🤖 1. AI Agent & Model Context Protocol (MCP)
 
+- **Agent Self-Discovery Manifest (`/api/mcp`)**:
+  - Exposes an introspectable JSON descriptor with server identity, tools, parameters, auth models, and client configs (Claude Code, Cursor, Antigravity, etc.).
+- **Dedicated Agent Operational Manual (`/skill.md`)**:
+  - Serves agent-focused markdown guide at root (`/skill.md`) with zero-config instructions, CLI snippets, and workflow checklists.
 - **Official MCP Server (`@airtifact/mcp`)**:
   - Out-of-the-box support for AI agents (Cursor, Claude Code, Antigravity, Windsurf, Claude Desktop, etc.).
   - Runs locally via `npx @airtifact/mcp` over standard JSON-RPC (`stdio`).
