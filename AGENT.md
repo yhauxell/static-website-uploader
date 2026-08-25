@@ -55,12 +55,14 @@ static-website-uploader/
 │   └── web/
 │       ├── app/
 │       │   ├── api/
+│       │   │   ├── mcp/route.ts         # Agent MCP discovery manifest (/api/mcp)
 │       │   │   ├── upload/route.ts      # Main zip/file upload ingestion
 │       │   │   ├── projects/route.ts    # Project retrieval & deletion
 │       │   │   ├── user/projects/       # Authenticated user site listings
 │       │   │   └── admin/               # Admin management endpoints
+│       │   ├── skill.md/route.ts        # Dynamic agent operational manual (/skill.md)
 │       │   ├── [projectId]/             # Dynamic route serving uploaded static assets
-│       │   └── page.tsx                 # Web drag-and-drop UI
+│       │   └── page.tsx                 # Web drag-and-drop UI & MCP snippets
 │       └── lib/
 │           ├── storage.ts               # Storage layer abstractions (Vercel Blob)
 │           └── auth.ts                  # Auth token & session verification

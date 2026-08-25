@@ -4,6 +4,7 @@ An official Model Context Protocol (MCP) server that enables AI coding assistant
 
 ## Features
 
+- **Self-Discovery & Guidelines**: Agents can query `/api/mcp` for machine-readable manifests and read `/skill.md` for operational instructions.
 - **`publish_site` Tool**: Automatically packs a local folder (must contain `index.html`), zips it in memory, and deploys it programmatically to your uploader backend.
 - **`list_sites` Tool**: Lists all static websites published by the authenticated user along with file counts, upload dates, and live URLs.
 - **Smart Ignore Rules**: Excludes unnecessary folders (`.git`, `node_modules`, `.next`, `dist`) and hidden OS files (`.DS_Store`) during compression.
