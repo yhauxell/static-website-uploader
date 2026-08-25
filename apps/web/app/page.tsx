@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Copy, Check, Star, Sun, Moon, ArrowRight, User } from 'lucide-react';
+import { Upload, Copy, Check, Star, Sun, Moon, ArrowRight, User, Bot, Terminal } from 'lucide-react';
 import { DEFAULT_MAX_ANON_UPLOAD_SIZE_BYTES } from '@/lib/upload-config';
 import Link from 'next/link';
 
@@ -18,7 +18,7 @@ interface UploadResponse {
 const COPY_RESET_DELAY_MS = 2000;
 
 type CopyField = 'share' | 'remove' | 'token' | 'snippet';
-type SnippetTab = 'mcp' | 'curl' | 'js' | 'python';
+type SnippetTab = 'mcp' | 'skill' | 'curl' | 'js' | 'python';
 
 const snippets: Record<SnippetTab, string> = {
   mcp: `// Add to mcp_config.json
@@ -34,6 +34,11 @@ const snippets: Record<SnippetTab, string> = {
     }
   }
 }`,
+  skill: `# Agent operational manual:
+curl -s https://airtifact.page/skill.md
+
+# MCP server discovery & tool manifest:
+curl -s https://airtifact.page/api/mcp`,
   curl: `# Deploy a ZIP with index.html via cURL
 curl -X POST https://airtifact.page/api/upload \\
   -H "Authorization: Bearer YOUR_API_AUTH_TOKEN" \\
@@ -227,6 +232,16 @@ export default function Page() {
     <div className="relative min-h-screen bg-background text-foreground flex flex-col">
       {/* Top-right controls */}
       <div className="fixed top-4 right-4 flex items-center gap-2 z-10">
+        <a
+          href="/skill.md"
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted transition-colors"
+          title="Agent Skill Manual (skill.md)"
+        >
+          <Bot className="size-3" />
+          skill.md
+        </a>
         <Link
           href="/dashboard"
           className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background p-1.5 text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
@@ -320,9 +335,20 @@ export default function Page() {
               {/* Developer & Agent Snippets */}
               <div className="mt-8 pt-6 border-t border-border/60">
                 <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                    Deploy via API & Agents
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                      Deploy via API & Agents
+                    </span>
+                    <a
+                      href="/api/mcp"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border border-border bg-muted/60 text-muted-foreground hover:text-foreground transition-colors"
+                      title="MCP Server Self-Discovery JSON"
+                    >
+                      /api/mcp
+                    </a>
+                  </div>
                   <Link
                     href="/dashboard"
                     className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
@@ -334,7 +360,7 @@ export default function Page() {
                 <div className="rounded-xl border border-border bg-muted/40 p-1 text-left">
                   {/* Tab Selector */}
                   <div className="flex gap-1 border-b border-border/40 pb-1 mb-2 px-1">
-                    {(['mcp', 'curl', 'js', 'python'] as const).map((tab) => (
+                    {(['mcp', 'skill', 'curl', 'js', 'python'] as const).map((tab) => (
                       <button
                         key={tab}
                         onClick={() => setActiveSnippetTab(tab)}
@@ -344,7 +370,7 @@ export default function Page() {
                             : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {tab === 'mcp' ? 'MCP Agent' : tab === 'curl' ? 'cURL' : tab === 'js' ? 'Node.js' : 'Python'}
+                        {tab === 'mcp' ? 'MCP Config' : tab === 'skill' ? 'skill.md' : tab === 'curl' ? 'cURL' : tab === 'js' ? 'Node.js' : 'Python'}
                       </button>
                     ))}
                   </div>

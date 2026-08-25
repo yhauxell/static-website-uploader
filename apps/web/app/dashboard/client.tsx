@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Copy, Check, Trash2, Key, LogOut } from 'lucide-react';
+import { Copy, Check, Trash2, Key, LogOut, Bot } from 'lucide-react';
 import { DEFAULT_MAX_AUTH_UPLOAD_SIZE_BYTES } from '@/lib/upload-config';
 
 interface DashboardClientProps {
@@ -113,7 +113,53 @@ export default function DashboardClient({ username }: DashboardClientProps) {
             )}
             <details className="mt-4 bg-muted border rounded-md p-4 space-y-2 group">
               <summary className="text-sm font-semibold cursor-pointer select-none list-none flex items-center justify-between">
-                How to use (JavaScript / fetch)
+                <span>🤖 AI Agent & MCP Integration (<code className="text-xs">@airtifact/mcp</code>)</span>
+                <span className="transition-transform group-open:rotate-180">▼</span>
+              </summary>
+              <div className="pt-2 space-y-3">
+                <p className="text-xs text-muted-foreground">
+                  Give this configuration to Claude Code, Cursor, Antigravity, or Windsurf so the agent can autonomously deploy static sites and live previews directly from your workspace:
+                </p>
+                <pre className="text-xs overflow-x-auto bg-background p-3 rounded border">
+{`// Add to your mcp_config.json
+{
+  "mcpServers": {
+    "airtifact": {
+      "command": "npx",
+      "args": ["-y", "@airtifact/mcp"],
+      "env": {
+        "AIRTIFACT_URL": "${typeof window !== 'undefined' ? window.location.origin : 'https://airtifact.page'}",
+        "AIRTIFACT_AUTH_TOKEN": "${apiKey || '<YOUR_API_KEY>'}"
+      }
+    }
+  }
+}`}
+                </pre>
+                <div className="flex items-center gap-3 pt-1 text-xs">
+                  <a
+                    href="/skill.md"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    <Bot className="w-3.5 h-3.5" /> Agent Skill Manual (/skill.md)
+                  </a>
+                  <span className="text-muted-foreground">•</span>
+                  <a
+                    href="/api/mcp"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary hover:underline inline-flex items-center gap-1"
+                  >
+                    MCP Discovery JSON (/api/mcp)
+                  </a>
+                </div>
+              </div>
+            </details>
+
+            <details className="mt-2 bg-muted border rounded-md p-4 space-y-2 group">
+              <summary className="text-sm font-semibold cursor-pointer select-none list-none flex items-center justify-between">
+                <span>⚡ REST API (JavaScript / fetch)</span>
                 <span className="transition-transform group-open:rotate-180">▼</span>
               </summary>
               <div className="pt-2">
