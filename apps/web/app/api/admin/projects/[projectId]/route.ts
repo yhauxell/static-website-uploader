@@ -1,7 +1,7 @@
-import { del, list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { checkBotId } from 'botid/server';
 import { isValidAdminCredential } from '@/lib/session';
+import { getStorageAdapter } from '@/lib/storage';
 
 export async function DELETE(
   request: NextRequest,
@@ -27,7 +27,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       console.warn('[v0] BLOB_READ_WRITE_TOKEN not configured');
       return NextResponse.json(
         { error: 'Blob storage is not configured' },
@@ -40,15 +40,14 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
 
-    const { blobs } = await list({
-      prefix: `projects/${projectId}/`,
-    });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list(`projects/${projectId}/`);
 
     if (blobs.length === 0) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    await del(blobs.map((blob) => blob.pathname));
+    await storage.del(blobs.map((blob) => blob.pathname));
 
     return NextResponse.json({
       ok: true,

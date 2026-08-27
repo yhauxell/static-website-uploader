@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
+import { getStorageAdapter } from '@/lib/storage';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,20 +18,9 @@ export async function generateMetadata({
 
 async function getProjectIndex(projectId: string): Promise<string | null> {
   try {
-    const { blobs } = await list({
-      prefix: `projects/${projectId}/`,
-    });
-
-    const indexBlob = blobs.find(
-      (blob) => blob.pathname === `projects/${projectId}/index.html`
-    );
-
-    if (!indexBlob) {
-      return null;
-    }
-
-    const response = await fetch(indexBlob.url);
-    return await response.text();
+    const content = await getStorageAdapter().getContent(`projects/${projectId}/index.html`);
+    if (!content) return null;
+    return content.toString('utf-8');
   } catch (error) {
     console.error('[v0] Error fetching index:', error);
     return null;
@@ -47,15 +36,14 @@ export default async function ProjectPage({
   
   let isBlocked = false;
   try {
-    const { blobs } = await list({ prefix: `projects/${projectId}/metadata.json` });
-    if (blobs.length > 0) {
-      const response = await fetch(blobs[0].url, { cache: 'no-store' });
-      const metadata = await response.json();
+    const storage = getStorageAdapter();
+    const metadataContent = await storage.getContent(`projects/${projectId}/metadata.json`);
+    if (metadataContent) {
+      const metadata = JSON.parse(metadataContent.toString('utf-8'));
       if (metadata.owner) {
-        const userBlobs = await list({ prefix: `users/${metadata.owner}/profile.json` });
-        if (userBlobs.blobs.length > 0) {
-          const userResponse = await fetch(userBlobs.blobs[0].url, { cache: 'no-store' });
-          const userProfile = await userResponse.json();
+        const userContent = await storage.getContent(`users/${metadata.owner}/profile.json`);
+        if (userContent) {
+          const userProfile = JSON.parse(userContent.toString('utf-8'));
           isBlocked = !!userProfile.isBlocked;
         }
       }

@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidAdminCredential } from '@/lib/session';
+import { getStorageAdapter } from '@/lib/storage';
 
 interface DashboardMetrics {
   totalUsers: number;
@@ -24,17 +24,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       return NextResponse.json({ error: 'BLOB_READ_WRITE_TOKEN not configured' }, { status: 500 });
     }
 
+    const storage = getStorageAdapter();
+
     // Fetch all users
-    const usersList = await list({ prefix: 'users/' });
+    const usersList = await storage.list('users/');
     const userProfiles = usersList.blobs.filter(b => b.pathname.endsWith('/profile.json'));
     const totalUsers = userProfiles.length;
 
     // Fetch all projects
-    const projectsList = await list({ prefix: 'projects/' });
+    const projectsList = await storage.list('projects/');
     
     const projectsMap = new Map<string, { size: number; hasMetadata: boolean }>();
     let totalUploadSize = 0;
@@ -70,10 +72,9 @@ export async function GET(request: NextRequest) {
 
       if (projectInfo.hasMetadata) {
         try {
-          const metadataBlob = projectsList.blobs.find(b => b.pathname === `projects/${projectId}/metadata.json`);
-          if (metadataBlob) {
-            const response = await fetch(metadataBlob.url);
-            const metadata = await response.json();
+          const content = await storage.getContent(`projects/${projectId}/metadata.json`);
+          if (content) {
+            const metadata = JSON.parse(content.toString('utf-8'));
             uploadDate = metadata.uploadDate || uploadDate;
             fileName = metadata.fileName || fileName;
             owner = metadata.owner;

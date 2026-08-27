@@ -119,7 +119,48 @@ Once deployed:
 
 ---
 
-## Local Testing
+## Local Storage (Offline / Air-Gapped Environments)
+
+Airtifact supports a **local filesystem storage backend** that requires no cloud provider — ideal for local development, enterprise intranets, and privacy-sensitive agent workflows.
+
+### Enabling Local Storage
+
+Set the following environment variable before starting the server:
+
+```bash
+STORAGE_PROVIDER=local
+```
+
+Files will be stored in `./data/artifacts` by default. Override with:
+
+```bash
+STORAGE_LOCAL_PATH=/path/to/your/storage/directory
+```
+
+### How It Works
+
+- All project files, metadata, and user profiles are stored as ordinary files on disk.
+- The storage directory is strictly sanitized — directory traversal attempts (e.g. `../../etc/passwd`) are detected and rejected.
+- No `BLOB_READ_WRITE_TOKEN` is required.
+- Serving, listing, and deleting projects works identically to the Vercel Blob backend.
+
+### Example `.env.local` for Fully Offline Mode
+
+```env
+STORAGE_PROVIDER=local
+STORAGE_LOCAL_PATH=./data/artifacts
+SESSION_SECRET=<random-32-char-string>
+ADMIN_PASSWORD_HASH=<bcrypt-hash>
+```
+
+### Storage Backends
+
+| Provider | `STORAGE_PROVIDER` | Required Env Vars |
+|---|---|---|
+| Vercel Blob (default) | `vercel-blob` | `BLOB_READ_WRITE_TOKEN` |
+| Local filesystem | `local` | `STORAGE_LOCAL_PATH` (optional) |
+
+---
 
 ### Development Setup
 
