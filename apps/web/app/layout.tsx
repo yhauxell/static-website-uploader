@@ -10,8 +10,65 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Static Website Uploader',
-  description: 'Upload a ZIP, get a shareable link instantly.',
+  title: {
+    default: 'Airtifact – AI-Powered Static Site Deployment',
+    template: '%s | Airtifact',
+  },
+  description:
+    'Airtifact is the universal, open-source deployment layer and artifact preview hub for AI coding agents. Upload static sites via drag-and-drop or let AI assistants deploy live preview links via MCP.',
+  keywords: [
+    'Airtifact',
+    'static site deployment',
+    'AI coding agent',
+    'MCP server',
+    'Model Context Protocol',
+    'static website hosting',
+    'ZIP upload',
+    'preview link',
+    'Vercel Blob',
+    'Claude Code',
+    'Cursor',
+    'Windsurf',
+    'open-source deployment',
+    'artifact hosting',
+  ],
+  authors: [{ name: 'Airtifact', url: 'https://airtifact.page' }],
+  metadataBase: new URL('https://airtifact.page'),
+  openGraph: {
+    type: 'website',
+    url: '/',
+    siteName: 'Airtifact',
+    title: 'Airtifact – AI-Powered Static Site Deployment',
+    description:
+      'Upload static sites via drag-and-drop or let AI agents deploy live preview links directly from their workspace via MCP.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Airtifact – AI-Powered Static Site Deployment',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Airtifact – AI-Powered Static Site Deployment',
+    description:
+      'Upload static sites via drag-and-drop or let AI agents deploy live preview links directly from their workspace via MCP.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-image-preview': 'large',
+    },
+  },
+  alternates: {
+    canonical: '/',
+  },
 }
 
 // Inline script runs before first paint to apply .dark on <html> without flash.
