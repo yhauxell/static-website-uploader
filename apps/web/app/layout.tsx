@@ -11,7 +11,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'Airtifact – AI-Powered Static Site Deployment',
+    default: 'Airtifact - agentic static site deployment',
     template: '%s | Airtifact',
   },
   description:
@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: 'website',
     url: '/',
     siteName: 'Airtifact',
-    title: 'Airtifact – AI-Powered Static Site Deployment',
+    title: 'Airtifact - agentic static site deployment',
     description:
       'Upload static sites via drag-and-drop or let AI agents deploy live preview links directly from their workspace via MCP.',
     images: [
@@ -46,13 +46,13 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Airtifact – AI-Powered Static Site Deployment',
+        alt: 'Airtifact - agentic static site deployment',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Airtifact – AI-Powered Static Site Deployment',
+    title: 'Airtifact - agentic static site deployment',
     description:
       'Upload static sites via drag-and-drop or let AI agents deploy live preview links directly from their workspace via MCP.',
     images: ['/og-image.png'],
