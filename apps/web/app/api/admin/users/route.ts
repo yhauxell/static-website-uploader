@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidAdminCredential } from '@/lib/session';
+import { getStorageAdapter } from '@/lib/storage';
 
 interface UserData {
   username: string;
@@ -20,11 +20,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       return NextResponse.json({ error: 'BLOB_READ_WRITE_TOKEN not configured' }, { status: 500 });
     }
 
-    const { blobs } = await list({ prefix: 'users/' });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list('users/');
     const users: UserData[] = [];
 
     for (const blob of blobs) {
@@ -32,15 +33,17 @@ export async function GET(request: NextRequest) {
       if (match) {
         let isBlocked = false;
         try {
-          const res = await fetch(blob.url, { cache: 'no-store' });
-          const profile = await res.json();
-          isBlocked = !!profile.isBlocked;
+          const content = await storage.getContent(blob.pathname);
+          if (content) {
+            const profile = JSON.parse(content.toString('utf-8'));
+            isBlocked = !!profile.isBlocked;
+          }
         } catch (e) {
           console.error('Failed to fetch profile for', match[1]);
         }
         users.push({
           username: match[1],
-          createdAt: blob.uploadedAt.toISOString(),
+          createdAt: (blob.uploadedAt ?? new Date()).toISOString(),
           isBlocked,
         });
       }

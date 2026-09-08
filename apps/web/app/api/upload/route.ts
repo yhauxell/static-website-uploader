@@ -1,4 +1,3 @@
-import { put } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import JSZip from 'jszip';
 import { 
@@ -13,6 +12,7 @@ import {
 } from '@/lib/project-removal';
 import { validateUserSession, validateApiKeySignature } from '@/lib/session';
 import { getUser } from '@/lib/user-store';
+import { getStorageAdapter } from '@/lib/storage';
 
 const MAX_ANON_UPLOAD_SIZE_BYTES = parseInt(
   process.env.MAX_ANON_UPLOAD_SIZE_BYTES ?? String(DEFAULT_MAX_ANON_UPLOAD_SIZE_BYTES),
@@ -152,9 +152,7 @@ export async function POST(request: NextRequest) {
       const bufferObject = Buffer.from(fileBuffer);
 
       const blobPath = `projects/${projectId}/${normalizedPath}`;
-      await put(blobPath, bufferObject, {
-        access: 'public',
-      });
+      await getStorageAdapter().put(blobPath, bufferObject);
 
       uploadedFiles.push(normalizedPath);
     }
@@ -179,10 +177,9 @@ export async function POST(request: NextRequest) {
       metadata.owner = username;
     }
 
-    await put(
+    await getStorageAdapter().put(
       `projects/${projectId}/metadata.json`,
-      JSON.stringify(metadata),
-      { access: 'public' }
+      JSON.stringify(metadata)
     );
 
     return NextResponse.json({

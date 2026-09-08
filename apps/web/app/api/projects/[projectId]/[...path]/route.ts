@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidProjectId } from '@/lib/project-removal';
+import { getStorageAdapter } from '@/lib/storage';
 
 export async function GET(
   request: NextRequest,
@@ -35,26 +35,14 @@ export async function GET(
       );
     }
 
-    // List blobs to check if project exists and file is accessible
-    const { blobs } = await list({
-      prefix: `projects/${projectId}/`,
-    });
-
-    // Find the requested file
-    const fileBlob = blobs.find(
-      (blob) => blob.pathname === `projects/${projectId}/${filePath}`
-    );
-
-    if (!fileBlob) {
+    // Fetch the file content
+    const content = await getStorageAdapter().getContent(`projects/${projectId}/${filePath}`);
+    if (!content) {
       return NextResponse.json(
         { error: 'File not found' },
         { status: 404 }
       );
     }
-
-    // Fetch the file content
-    const response = await fetch(fileBlob.url);
-    const content = await response.arrayBuffer();
 
     // Determine content type
     const ext = filePath.split('.').pop()?.toLowerCase() || '';

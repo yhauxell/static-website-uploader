@@ -15,3 +15,6 @@ node_modules
 .next/
 .DS_Store
 .vercel
+
+# Local filesystem storage
+data/

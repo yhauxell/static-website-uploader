@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { validateUserSession, validateApiKeySignature } from '@/lib/session';
+import { getStorageAdapter } from '@/lib/storage';
 
 function getUsername(request: NextRequest): string | null {
   const authHeader = request.headers.get('Authorization');
@@ -23,20 +23,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       return NextResponse.json({ error: 'Blob storage is not configured' }, { status: 500 });
     }
 
-    const { blobs } = await list({ prefix: 'projects/' });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list('projects/');
 
     const metadataPromises = blobs
       .filter((blob) => blob.pathname.endsWith('/metadata.json'))
       .map(async (blob) => {
         try {
-          const res = await fetch(blob.url, { cache: 'no-store' });
-          if (!res.ok) return null;
-          const data = await res.json();
-          return { ...data, _url: blob.url, _pathname: blob.pathname };
+          const content = await storage.getContent(blob.pathname);
+          if (!content) return null;
+          const data = JSON.parse(content.toString('utf-8'));
+          return { ...data, _pathname: blob.pathname };
         } catch {
           return null;
         }

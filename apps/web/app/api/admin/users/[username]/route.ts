@@ -1,7 +1,7 @@
-import { list, del } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidAdminCredential } from '@/lib/session';
 import { getUser, updateUser, deleteUser } from '@/lib/user-store';
+import { getStorageAdapter } from '@/lib/storage';
 
 export async function PATCH(
   request: NextRequest,
@@ -56,20 +56,22 @@ export async function DELETE(
     await deleteUser(username);
 
     // 2. Find and delete all user's projects
-    const { blobs } = await list({ prefix: 'projects/' });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list('projects/');
     const metadataBlobs = blobs.filter(b => b.pathname.endsWith('/metadata.json'));
     
     let deletedProjectsCount = 0;
 
     for (const metadataBlob of metadataBlobs) {
       try {
-        const response = await fetch(metadataBlob.url);
-        const metadata = await response.json();
+        const content = await storage.getContent(metadataBlob.pathname);
+        if (!content) continue;
+        const metadata = JSON.parse(content.toString('utf-8'));
         
         if (metadata.owner === username) {
           // Delete all blobs for this project
           const projectBlobs = blobs.filter(b => b.pathname.startsWith(`projects/${metadata.projectId}/`));
-          await del(projectBlobs.map(b => b.pathname));
+          await storage.del(projectBlobs.map(b => b.pathname));
           deletedProjectsCount++;
         }
       } catch (err) {

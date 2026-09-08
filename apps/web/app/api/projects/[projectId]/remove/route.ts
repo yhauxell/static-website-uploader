@@ -1,4 +1,3 @@
-import { del, list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { checkBotId } from 'botid/server';
 import {
@@ -7,6 +6,7 @@ import {
   isValidProjectId,
   type StoredProjectMetadata,
 } from '@/lib/project-removal';
+import { getStorageAdapter } from '@/lib/storage';
 
 export async function DELETE(
   request: NextRequest,
@@ -18,7 +18,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Access denied' }, { status: 403 });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       console.warn('[v0] BLOB_READ_WRITE_TOKEN not configured');
       return NextResponse.json(
         { error: 'Blob storage is not configured' },
@@ -37,31 +37,19 @@ export async function DELETE(
       return NextResponse.json({ error: 'Invalid delete token' }, { status: 400 });
     }
 
-    const { blobs } = await list({
-      prefix: `projects/${projectId}/`,
-    });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list(`projects/${projectId}/`);
 
     if (blobs.length === 0) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
-    const metadataBlob = blobs.find(
-      (blob) => blob.pathname === `projects/${projectId}/metadata.json`
-    );
-
-    if (!metadataBlob) {
+    const metadataContent = await storage.getContent(`projects/${projectId}/metadata.json`);
+    if (!metadataContent) {
       return NextResponse.json({ error: 'Project metadata not found' }, { status: 404 });
     }
 
-    const metadataResponse = await fetch(metadataBlob.url, { cache: 'no-store' });
-    if (!metadataResponse.ok) {
-      return NextResponse.json(
-        { error: 'Failed to load project metadata' },
-        { status: 500 }
-      );
-    }
-
-    const metadata = (await metadataResponse.json()) as Partial<StoredProjectMetadata> & { owner?: string };
+    const metadata = JSON.parse(metadataContent.toString('utf-8')) as Partial<StoredProjectMetadata> & { owner?: string };
     
     // Check if user is the owner
     const cookieValue = request.cookies.get('auth_session')?.value;
@@ -81,7 +69,7 @@ export async function DELETE(
       }
     }
 
-    await del(blobs.map((blob) => blob.pathname));
+    await storage.del(blobs.map((blob) => blob.pathname));
 
     return NextResponse.json({
       ok: true,

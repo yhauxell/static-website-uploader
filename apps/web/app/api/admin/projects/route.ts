@@ -1,6 +1,6 @@
-import { list } from '@vercel/blob';
 import { NextRequest, NextResponse } from 'next/server';
 import { isValidAdminCredential } from '@/lib/session';
+import { getStorageAdapter } from '@/lib/storage';
 
 interface ProjectMetadata {
   projectId: string;
@@ -29,28 +29,31 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if Blob token is available
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    // Check if Blob token is available (only required for vercel-blob provider)
+    if (!process.env.BLOB_READ_WRITE_TOKEN && (process.env.STORAGE_PROVIDER ?? 'vercel-blob') !== 'local') {
       console.warn('[v0] BLOB_READ_WRITE_TOKEN not configured');
       return NextResponse.json({ projects: [] });
     }
 
-    const { blobs } = await list({ prefix: 'projects/' });
+    const storage = getStorageAdapter();
+    const { blobs } = await storage.list('projects/');
 
     const projectsMap = new Map<string, ProjectMetadata>();
 
     // Fetch blocked users efficiently
-    const usersList = await list({ prefix: 'users/' });
+    const usersList = await storage.list('users/');
     const blockedUsers = new Set<string>();
     
     for (const blob of usersList.blobs) {
       if (blob.pathname.endsWith('/profile.json')) {
         try {
-          const res = await fetch(blob.url, { cache: 'no-store' });
-          const profile = await res.json();
-          if (profile.isBlocked) {
-            const match = blob.pathname.match(/^users\/([^\/]+)\/profile\.json$/);
-            if (match) blockedUsers.add(match[1]);
+          const content = await storage.getContent(blob.pathname);
+          if (content) {
+            const profile = JSON.parse(content.toString('utf-8'));
+            if (profile.isBlocked) {
+              const match = blob.pathname.match(/^users\/([^\/]+)\/profile\.json$/);
+              if (match) blockedUsers.add(match[1]);
+            }
           }
         } catch (e) {}
       }
@@ -101,13 +104,9 @@ export async function GET(request: NextRequest) {
     // Fetch metadata for each project to get actual upload date
     for (const [projectId, project] of projectsMap) {
       try {
-        const metadataBlob = blobs.find(
-          (b) => b.pathname === `projects/${projectId}/metadata.json`
-        );
-
-        if (metadataBlob) {
-          const response = await fetch(metadataBlob.url, { cache: 'no-store' });
-          const metadata = await response.json();
+        const content = await storage.getContent(`projects/${projectId}/metadata.json`);
+        if (content) {
+          const metadata = JSON.parse(content.toString('utf-8'));
           project.uploadDate = metadata.uploadDate;
           project.fileName = metadata.fileName;
           // Use file count from metadata for accuracy
